@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>慶隆旅遊 AI 智慧旅遊助手</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF7F0; --card:#FFFFFF; --primary:#5D7F63; --primary-dark:#41594A;
+    --primary-soft:#E4EDE3; --ink:#2A2A25; --ink-soft:#6E6B60; --accent:#C17A4E;
+    --success:#4C7A52; --success-soft:#E4EFE1; --warn:#B98A34; --warn-soft:#F5EBD6;
+    --danger:#B15A4A; --danger-soft:#F5E3DE; --border:#E4DFD1;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink);}
+  #app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:40px;}
+  .topbar{display:flex;align-items:center;gap:12px;padding:18px 20px;background:var(--primary);color:#fff;position:sticky;top:0;z-index:10;}
+  .topbar .back{background:rgba(255,255,255,.18);border:none;border-radius:14px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:#fff;flex-shrink:0;}
+  .topbar .title{font-size:22px;font-weight:900;letter-spacing:.5px;}
+  .hero{background:var(--primary);color:#fff;padding:28px 20px 34px;border-radius:0 0 32px 32px;}
+  .hero .brand{display:flex;align-items:center;gap:10px;font-size:24px;font-weight:900;}
+  .hero .sub{font-size:15px;opacity:.9;margin-top:6px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:22px 20px;}
+  .bigbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:26px 12px;border-radius:24px;border:2px solid var(--border);background:#fff;color:var(--ink);cursor:pointer;min-height:130px;font-size:19px;font-weight:700;}
+  .bigbtn .ic{font-size:34px;}
+  .content{padding:16px 20px 100px;}
+  .field{margin-bottom:22px;}
+  .field label{display:block;font-size:19px;font-weight:700;margin-bottom:6px;}
+  .field .hint{font-size:15px;color:var(--ink-soft);margin-bottom:8px;}
+  input[type=text], input[type=date], input[type=time], input[type=tel], textarea, select{
+    width:100%;font-size:20px;padding:14px 16px;border-radius:14px;border:2px solid var(--border);background:#fff;color:var(--ink);
+  }
+  textarea{min-height:110px;resize:vertical;font-family:inherit;}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;font-size:19px;font-weight:700;border-radius:16px;padding:16px 20px;cursor:pointer;width:100%;border:none;}
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-ghost{background:#fff;color:var(--primary);border:2px solid var(--primary);}
+  .btn-danger{background:var(--danger-soft);color:var(--danger);border:2px solid var(--danger);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .row{display:flex;gap:12px;}
+  .row > *{flex:1;}
+  .choice{padding:16px 10px;border-radius:16px;font-size:18px;font-weight:700;border:2px solid var(--border);background:#fff;cursor:pointer;text-align:center;}
+  .choice.sel{border-color:var(--primary);background:var(--primary-soft);}
+  .pill{padding:10px 16px;border-radius:999px;font-size:16px;font-weight:700;border:2px solid var(--border);background:#fff;cursor:pointer;}
+  .pill.sel{border-color:var(--primary);background:var(--primary-soft);}
+  .card{background:#fff;border:2px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px;}
+  .empty{text-align:center;color:var(--ink-soft);font-size:17px;padding:40px 10px;line-height:1.8;}
+  .progress-wrap{padding:16px 20px 6px;}
+  .progress-label{font-size:15px;color:var(--ink-soft);margin-bottom:8px;font-weight:700;}
+  .progress-track{position:relative;height:26px;}
+  .progress-bg{position:absolute;top:11px;left:0;right:0;height:4px;background:var(--border);border-radius:4px;}
+  .progress-fill{position:absolute;top:11px;left:0;height:4px;background:var(--primary);border-radius:4px;transition:width .3s;}
+  .progress-bus{position:absolute;top:-4px;font-size:24px;transition:left .3s;}
+  .bottombar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:16px;display:flex;gap:12px;max-width:480px;margin:0 auto;z-index:15;}
+  .status-pill{border:none;font-weight:800;font-size:16px;border-radius:999px;padding:8px 16px;cursor:pointer;}
+  .stat-chip{flex:1;background:#fff;border:2px solid var(--border);border-radius:14px;padding:10px 6px;text-align:center;}
+  .stat-chip .v{font-size:22px;font-weight:900;}
+  .stat-chip .l{font-size:13px;color:var(--ink-soft);}
+  .home-fab{position:fixed;bottom:20px;right:20px;width:54px;height:54px;border-radius:50%;background:var(--primary-dark);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:20;font-size:24px;color:#fff;}
+  .info-card{background:#fff;border:2px solid var(--border);border-radius:16px;padding:14px;}
+  .info-card .t{font-weight:700;font-size:16px;margin-bottom:6px;}
+  .info-card .d{font-size:15px;color:var(--ink-soft);line-height:1.6;}
+  .banner{background:var(--danger-soft);color:var(--danger);padding:14px;border-radius:14px;font-size:16px;margin-top:8px;margin-bottom:16px;}
+  .notice-box{background:var(--primary-soft);border-radius:16px;padding:16px;font-size:16px;line-height:1.9;white-space:pre-wrap;}
+  @media print{
+    body *{visibility:hidden;}
+    #print-area, #print-area *{visibility:visible;}
+    #print-area{position:absolute;top:0;left:0;width:100%;}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ============================================================
+   資料儲存：使用瀏覽器 localStorage
+   -> 部署在 GitHub Pages 或直接用瀏覽器開啟本檔案都能正常保存資料
+   -> 資料只存在「這一台裝置、這一個瀏覽器」裡，換手機/換瀏覽器不會同步
+   ============================================================ */
+const STORE_KEY = "qlta_data_v1";
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {
+    trips: [], customers: [], drivers: [], works: [],
+    settings: { companyName: "慶隆旅遊", phone: "", address: "" }
+  };
+}
+function saveDB(){ localStorage.setItem(STORE_KEY, JSON.stringify(DB)); }
+let DB = loadDB();
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ============================================================
+   路由狀態
+   ============================================================ */
+let screen = "home";
+let param = null;
+function go(s, p=null){ screen=s; param=p; render(); window.scrollTo(0,0); }
+
+/* ============================================================
+   離線「智慧文案」產生器（不需要網路、不需要 API 金鑰）
+   依旅遊名稱／景點／特色關鍵字，套用多組模板與隨機用語，產生溫馨專業的文字
+   注意：這是套用模板變化語氣，不是查證景點的真實歷史資料，
+   若景點有特殊典故，建議老闆自己再補充修改。
+   ============================================================ */
+const OPENERS = ["跟著我們的腳步","一起出發","來一趟輕鬆自在的旅程","邀請您","放慢腳步","規劃了一趟"];
+const MOODS = {
+  "適合長輩":"步調放慢、行程輕鬆，讓長輩也能自在同遊",
+  "賞花":"沿途風景優美，正是賞花的好時節",
+  "美食":"安排在地美食，吃飽喝足才是重點",
+  "親子":"大人小孩都能玩得開心，留下美好回憶",
+  "輕鬆好走":"路線平緩好走，不用擔心體力負擔",
+  "宗教祈福":"安排祈福參拜行程，祈求平安順遂"
+};
+const SPOT_TEMPLATES = [
+  "是此行不可錯過的景點，值得放慢腳步細細品味",
+  "風景怡人，是拍照留念的好地方",
+  "當地小有名氣，來訪的旅客都讚不絕口",
+  "氣氛悠閒，適合稍作停留、走走逛逛",
+  "是行程中的亮點之一，別忘了多拍幾張照片"
+];
+const FOOD_LINES = ["建議品嚐在地特色小吃，補充體力再上路","中午安排在地合菜，讓大家吃得飽飽的","沿途也有不少小吃攤，肚子餓隨時能補給"];
+const DRESS_LINES = ["建議穿著輕便好走的鞋子與衣物","天氣變化大，建議洋蔥式穿法，方便穿脫","請穿著舒適好走的鞋子，方便上下車"];
+const PACK_OPTIONS = ["身分證","健保卡","個人常備藥物","水壺","小零錢","雨具（視天氣）","帽子與防曬用品","暈車藥（有需要者）"];
+const NOTE_OPTIONS = ["請提前10分鐘到達集合地點","上下車請注意腳步安全","如需協助請隨時告知隨車人員","貴重物品請隨身攜帶保管"];
+
+function pick(arr,n){
+  const copy=[...arr]; const out=[];
+  for(let i=0;i<n && copy.length;i++){ out.push(copy.splice(Math.floor(Math.random()*copy.length),1)[0]); }
+  return out;
+}
+function pickOne(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function generateContent(form){
+  const spots = form.spots.filter(Boolean);
+  const moodTexts = form.features.map(f=>MOODS[f]).filter(Boolean);
+  const title = form.title || (spots[0] ? `${spots[0]}．${spots.length>1?spots[spots.length-1]+'．':''}${form.duration}` : `精選${form.duration}`);
+  const subtitle = moodTexts[0] || "輕鬆出遊，好山好水好心情";
+  const intro = `${pickOne(OPENERS)}，${form.duration}走訪${spots.join("、")||"精選景點"}。${moodTexts.join("，")||"行程安排輕鬆順暢，適合各年齡層一同參加"}。${form.otherIdeas ? "（"+form.otherIdeas+"）" : ""}`;
+  const spotIntros = spots.map(name=>({ name, desc: `${name}${pickOne(SPOT_TEMPLATES)}` }));
+  return {
+    title, subtitle, intro, spotIntros,
+    food: pickOne(FOOD_LINES),
+    dress: pickOne(DRESS_LINES),
+    packing: pick(PACK_OPTIONS,4),
+    notes: pick(NOTE_OPTIONS,3),
+  };
+}
+
+/* ============================================================
+   小工具
+   ============================================================ */
+function esc(s){ return (s??"").toString().replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+function fmtDate(d){ return d || "日期未定"; }
+
+/* ============================================================
+   畫面渲染
+   ============================================================ */
+function render(){
+  const app = document.getElementById("app");
+  app.innerHTML = renderScreen();
+  bindEvents();
+}
+
+function topbar(title, backTo){
+  return `<div class="topbar">
+    ${backTo ? `<button class="back" onclick="go('${backTo}')">←</button>` : ""}
+    <div class="title">${esc(title)}</div>
+  </div>`;
+}
+
+function renderScreen(){
+  switch(screen){
+    case "home": return screenHome();
+    case "wizard": return screenWizard();
+    case "work-detail": return screenWorkDetail(param);
+    case "works": return screenWorks();
+    case "trips": return screenTrips();
+    case "trip-detail": return screenTripDetail(param);
+    case "rollcall-pick": return screenRollcallPick();
+    case "rollcall": return screenRollcall(param);
+    case "customers": return screenCustomers();
+    case "drivers": return screenDrivers();
+    case "settings": return screenSettings();
+    default: return screenHome();
+  }
+}
+
+/* ---------------- 首頁 ---------------- */
+function screenHome(){
+  return `
+  <div class="hero">
+    <div class="brand">🚌 ${esc(DB.settings.companyName||"慶隆旅遊")} AI 智慧旅遊助手</div>
+    <div class="sub">輸入幾個重點，馬上做出文案、行程、點名與司機通知</div>
+  </div>
+  <div class="grid2">
+    <div class="bigbtn" onclick="go('wizard')"><span class="ic">✨</span>AI 旅遊文宣</div>
+    <div class="bigbtn" onclick="go('trips')"><span class="ic">📅</span>我的行程</div>
+    <div class="bigbtn" onclick="go('rollcall-pick')"><span class="ic">👥</span>旅客點名</div>
+    <div class="bigbtn" onclick="go('drivers')"><span class="ic">🧑‍✈️</span>司機管理</div>
+    <div class="bigbtn" onclick="go('customers')"><span class="ic">👤</span>客戶資料</div>
+    <div class="bigbtn" onclick="go('works')"><span class="ic">📄</span>我的作品</div>
+    <div class="bigbtn" style="grid-column:span 2" onclick="go('settings')"><span class="ic">⚙️</span>系統設定</div>
+  </div>`;
+}
+
+/* ---------------- AI 文宣精靈 ---------------- */
+let wizardStep = 1;
+let wizardForm = null;
+function freshForm(){ return { title:"", date:"", duration:"一日遊", spots:[""], meetPlace:"", meetTime:"", features:[], otherIdeas:"" }; }
+
+function screenWizard(){
+  if(!wizardForm){ wizardForm=freshForm(); wizardStep=1; }
+  const f = wizardForm;
+  const total = 7;
+  const pct = ((wizardStep-1)/(total-1))*100;
+
+  let body = "";
+  if(wizardStep===1){
+    body = `
+      <div style="font-size:16px;color:var(--ink-soft);margin-bottom:18px;line-height:1.6;">👋 不知道怎麼寫沒關係！輸入幾個重點，馬上幫您做出專業文案。</div>
+      <div class="field"><label>旅遊名稱</label><div class="hint">例如：南投一日遊、阿里山二日遊</div>
+        <input type="text" id="f-title" value="${esc(f.title)}" placeholder="南投一日遊"></div>`;
+  } else if(wizardStep===2){
+    body = `<div class="field"><label>日期</label><div class="hint">請選擇出發日期</div>
+      <input type="date" id="f-date" value="${esc(f.date)}"></div>`;
+  } else if(wizardStep===3){
+    body = `<div class="field"><label>幾天幾夜？</label>
+      <div class="grid2" style="padding:0;gap:12px;">
+        ${["一日遊","二日遊","三日遊","四日以上"].map(d=>`<div class="choice ${f.duration===d?'sel':''}" onclick="setDuration('${d}')">${d}</div>`).join("")}
+      </div></div>`;
+  } else if(wizardStep===4){
+    body = `<div class="field"><label>景點</label><div class="hint">不知道怎麼輸入？一行一個景點即可</div>
+      <div id="spots-wrap">${f.spots.map((s,i)=>spotRow(s,i)).join("")}</div>
+      <button class="btn btn-ghost" style="border-style:dashed;margin-top:4px;" onclick="addSpot()">＋ 新增景點</button>
+    </div>`;
+  } else if(wizardStep===5){
+    body = `
+      <div class="field"><label>集合地點</label><div class="hint">例如：桃園火車站</div>
+        <input type="text" id="f-meetplace" value="${esc(f.meetPlace)}" placeholder="桃園火車站"></div>
+      <div class="field"><label>集合時間</label>
+        <input type="time" id="f-meettime" value="${esc(f.meetTime)}"></div>`;
+  } else if(wizardStep===6){
+    const opts = ["適合長輩","賞花","美食","親子","輕鬆好走","宗教祈福"];
+    body = `<div class="field"><label>特色（可留空）</label>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        ${opts.map(o=>`<div class="pill ${f.features.includes(o)?'sel':''}" onclick="toggleFeature('${o}')">${o}</div>`).join("")}
+      </div></div>`;
+  } else if(wizardStep===7){
+    body = `<div class="field"><label>其他想法（可留空）</label><div class="hint">例如：回程想去休息站、安排甕仔雞、希望不要太趕</div>
+      <textarea id="f-other">${esc(f.otherIdeas)}</textarea>
+    </div>`;
+  }
+
+  return `
+    ${topbar("AI 旅遊文宣","home")}
+    <div class="progress-wrap">
+      <div class="progress-label">第 ${wizardStep} 步／共 ${total} 步</div>
+      <div class="progress-track">
+        <div class="progress-bg"></div>
+        <div class="progress-fill" style="width:${pct}%"></div>
+        <div class="progress-bus" style="left:calc(${pct}% - 12px)">🚌</div>
+      </div>
+    </div>
+    <div class="content" id="wizard-content">${body}<div id="wizard-error"></div></div>
+    <div class="bottombar">
+      ${wizardStep>1 ? `<button class="btn btn-ghost" onclick="wizardPrev()">← 上一步</button>` : ""}
+      ${wizardStep<total
+        ? `<button class="btn btn-primary" onclick="wizardNext()">下一步 →</button>`
+        : `<button class="btn btn-primary" id="gen-btn" onclick="wizardGenerate()">✨ 立即產生文案</button>`}
+    </div>`;
+}
+function spotRow(val,i){
+  return `<div class="row" style="margin-bottom:10px;">
+    <input type="text" value="${esc(val)}" placeholder="景點 ${i+1}" oninput="setSpot(${i}, this.value)">
+    ${wizardForm.spots.length>1 ? `<button class="btn btn-danger" style="flex:0 0 56px;padding:14px 0;" onclick="removeSpot(${i})">✕</button>`:""}
+  </div>`;
+}
+function readCurrentStepInputs(){
+  const f = wizardForm;
+  if(wizardStep===1){ const el=document.getElementById("f-title"); if(el) f.title=el.value; }
+  if(wizardStep===2){ const el=document.getElementById("f-date"); if(el) f.date=el.value; }
+  if(wizardStep===5){
+    const mp=document.getElementById("f-meetplace"); if(mp) f.meetPlace=mp.value;
+    const mt=document.getElementById("f-meettime"); if(mt) f.meetTime=mt.value;
+  }
+  if(wizardStep===7){ const el=document.getElementById("f-other"); if(el) f.otherIdeas=el.value; }
+}
+function wizardNext(){ readCurrentStepInputs(); wizardStep++; render(); }
+function wizardPrev(){ readCurrentStepInputs(); wizardStep--; render(); }
+function setDuration(d){ wizardForm.duration=d; render(); }
+function setSpot(i,v){ wizardForm.spots[i]=v; }
+function addSpot(){ readCurrentStepInputs(); wizardForm.spots.push(""); render(); }
+function removeSpot(i){ readCurrentStepInputs(); wizardForm.spots.splice(i,1); render(); }
+function toggleFeature(o){
+  const f=wizardForm;
+  f.features = f.features.includes(o) ? f.features.filter(x=>x!==o) : [...f.features,o];
+  render();
+}
+function wizardGenerate(){
+  readCurrentStepInputs();
+  const f = wizardForm;
+  const content = generateContent(f);
+  const tripId = uid();
+  const trip = {
+    id: tripId, title: content.title, date: f.date, duration: f.duration,
+    spots: f.spots.filter(Boolean), meetPlace: f.meetPlace, meetTime: f.meetTime,
+    features: f.features, driverId: "", vehiclePlate: "", tourists: []
+  };
+  const work = { id: uid(), tripId, createdAt: new Date().toISOString(), content,
+    meta: { date:f.date, duration:f.duration, meetPlace:f.meetPlace, meetTime:f.meetTime } };
+  DB.trips.push(trip); DB.works.push(work); saveDB();
+  wizardForm = null; wizardStep = 1;
+  go("work-detail", work.id);
+}
+
+/* ---------------- 作品詳情 ---------------- */
+function screenWorkDetail(workId){
+  const w = DB.works.find(x=>x.id===workId);
+  if(!w) return topbar("找不到作品","works")+`<div class="content"><div class="empty">這份作品不存在或已被刪除</div></div>`;
+  const j = w.content;
+  const s = DB.settings;
+  return `
+    ${topbar("旅遊文宣預覽","works")}
+    <div class="content">
+      <div id="print-area">
+        <div style="background:linear-gradient(160deg,var(--primary),var(--primary-dark));color:#fff;border-radius:24px;padding:30px 24px;text-align:center;">
+          <div style="font-size:15px;opacity:.85;margin-bottom:6px;">${esc(s.companyName||"慶隆旅遊")} ｜ 精選行程</div>
+          <div style="font-size:26px;font-weight:900;line-height:1.4;">${esc(j.title)}</div>
+          <div style="font-size:17px;margin-top:8px;opacity:.95;">${esc(j.subtitle||"")}</div>
+          <div style="margin-top:14px;font-size:15px;">📅 ${esc(fmtDate(w.meta.date))} ｜ 🚌 ${esc(w.meta.duration)}</div>
+        </div>
+        <div class="card" style="margin-top:16px;"><p style="font-size:17px;line-height:1.8;margin:0;">${esc(j.intro)}</p></div>
+        <div style="margin-top:16px;">
+          <div style="font-size:19px;font-weight:900;margin-bottom:10px;color:var(--primary-dark);">🗺️ 行程景點</div>
+          ${j.spotIntros.map((sp,i)=>`
+            <div class="card" style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:34px;height:34px;border-radius:50%;background:var(--primary-soft);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--primary-dark);flex-shrink:0;">${i+1}</div>
+              <div><div style="font-weight:700;font-size:18px;">${esc(sp.name)}</div><div style="font-size:15px;color:var(--ink-soft);margin-top:2px;">${esc(sp.desc)}</div></div>
+            </div>`).join("")}
+        </div>
+        <div class="grid2" style="padding:0;gap:12px;margin-top:6px;">
+          <div class="info-card"><div class="t">🍱 建議美食</div><div class="d">${esc(j.food)}</div></div>
+          <div class="info-card"><div class="t">👕 穿著建議</div><div class="d">${esc(j.dress)}</div></div>
+          <div class="info-card"><div class="t">🎒 攜帶物品</div><div class="d">${j.packing.map(esc).join("、")}</div></div>
+          <div class="info-card"><div class="t">📌 注意事項</div><div class="d">${j.notes.map(esc).join("、")}</div></div>
+        </div>
+        <div class="notice-box" style="margin-top:16px;">
+<b>集合資訊：</b>${esc(w.meta.meetPlace||"未提供")}　${esc(w.meta.meetTime||"")}
+<b>報名／聯絡：</b>${esc(s.phone||"（請至系統設定填寫電話）")}</div>
+      </div>
+      <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
+        <button class="btn btn-primary" onclick="window.print()">⬇️ 下載／列印 PDF</button>
+        <button class="btn btn-ghost" onclick="copyWorkText('${w.id}')">💬 複製文字（可貼 LINE）</button>
+        <button class="btn btn-danger" onclick="deleteWork('${w.id}')">🗑 刪除這份作品</button>
+      </div>
+    </div>`;
+}
+function copyWorkText(workId){
+  const w = DB.works.find(x=>x.id===workId); if(!w) return;
+  const j = w.content;
+  const text = `${j.title}\n${j.subtitle||""}\n\n${j.intro}\n\n【景點介紹】\n${j.spotIntros.map(s=>"・"+s.name+"："+s.desc).join("\n")}\n\n【建議美食】${j.food}\n【穿著建議】${j.dress}\n【攜帶物品】${j.packing.join("、")}\n【注意事項】${j.notes.join("、")}\n\n集合：${w.meta.meetPlace||""} ${w.meta.meetTime||""}　日期：${fmtDate(w.meta.date)}（${w.meta.duration}）`;
+  navigator.clipboard.writeText(text).then(()=>alert("文案已複製，可以貼到 LINE 分享！"));
+}
+function deleteWork(workId){
+  if(!confirm("確定要刪除這份作品嗎？")) return;
+  DB.works = DB.works.filter(w=>w.id!==workId); saveDB(); go("works");
+}
+
+/* ---------------- 我的作品列表 ---------------- */
+function screenWorks(){
+  const list = [...DB.works].reverse();
+  return topbar("我的作品","home") + `<div class="content">
+    ${list.length===0 ? `<div class="empty">還沒有作品，去「AI 旅遊文宣」建立第一份文案吧！</div>` : ""}
+    ${list.map(w=>`
+      <div class="card" style="cursor:pointer;" onclick="go('work-detail','${w.id}')">
+        <div style="font-size:19px;font-weight:800;">${esc(w.content.title)}</div>
+        <div style="font-size:14px;color:var(--ink-soft);margin-top:4px;">📅 ${esc(fmtDate(w.meta.date))} ｜ ${esc(w.meta.duration)}</div>
+      </div>`).join("")}
+  </div>`;
+}
+
+/* ---------------- 我的行程 ---------------- */
+function screenTrips(){
+  const list = [...DB.trips].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  return topbar("我的行程","home") + `<div class="content">
+    ${list.length===0 ? `<div class="empty">目前沒有行程，去「AI 旅遊文宣」建立第一個行程吧！</div>` : ""}
+    ${list.map(t=>{
+      const driver = DB.drivers.find(d=>d.id===t.driverId);
+      return `<div class="card">
+        <div style="font-size:19px;font-weight:800;">🚌 ${esc(t.title)}</div>
+        <div style="font-size:15px;color:var(--ink-soft);margin-top:6px;line-height:1.8;">
+          📅 ${esc(fmtDate(t.date))} ｜ ${esc(t.duration)}<br>
+          📍 集合：${esc(t.meetPlace||"未提供")} ${esc(t.meetTime||"")}<br>
+          🧑‍✈️ 司機：${driver ? esc(driver.name) : "未指派"}<br>
+          👥 團員：${t.tourists.length} 人
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <button class="btn btn-ghost" onclick="go('trip-detail','${t.id}')">行程詳情</button>
+          <button class="btn btn-ghost" onclick="go('rollcall','${t.id}')">旅客點名</button>
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+/* ---------------- 行程詳情（指派司機／出車通知） ---------------- */
+function screenTripDetail(tripId){
+  const t = DB.trips.find(x=>x.id===tripId);
+  if(!t) return topbar("找不到行程","trips")+`<div class="content"><div class="empty">此行程不存在</div></div>`;
+  const s = DB.settings;
+  return topbar("行程詳情","trips") + `<div class="content">
+    <div class="card">
+      <div style="font-size:20px;font-weight:900;">${esc(t.title)}</div>
+      <div style="font-size:16px;color:var(--ink-soft);margin-top:6px;line-height:1.8;">
+        📅 ${esc(fmtDate(t.date))} ｜ ${esc(t.duration)}<br>
+        📍 集合：${esc(t.meetPlace||"未提供")} ${esc(t.meetTime||"")}<br>
+        🗺️ 景點：${t.spots.map(esc).join("、")||"未提供"}
+      </div>
+    </div>
+    <div class="field"><label>指派司機</label>
+      <select id="driver-select" onchange="assignDriver('${t.id}', this.value)">
+        <option value="">－未指派－</option>
+        ${DB.drivers.map(d=>`<option value="${d.id}" ${t.driverId===d.id?"selected":""}>${esc(d.name)}（${esc(d.phone||"")}）</option>`).join("")}
+      </select>
+    </div>
+    <div class="field"><label>車牌號碼（可留空）</label>
+      <input type="text" id="plate-input" value="${esc(t.vehiclePlate||"")}" placeholder="例：ABC-1234" onchange="setPlate('${t.id}', this.value)">
+    </div>
+    <button class="btn btn-primary" onclick="showDriverNotice('${t.id}')">📋 產生司機出車通知</button>
+    <div id="driver-notice-area" style="margin-top:16px;"></div>
+  </div>`;
+}
+function assignDriver(tripId, driverId){
+  const t = DB.trips.find(x=>x.id===tripId); if(!t) return;
+  t.driverId = driverId; saveDB();
+}
+function setPlate(tripId, val){
+  const t = DB.trips.find(x=>x.id===tripId); if(!t) return;
+  t.vehiclePlate = val; saveDB();
+}
+function showDriverNotice(tripId){
+  const t = DB.trips.find(x=>x.id===tripId); if(!t) return;
+  const d = DB.drivers.find(x=>x.id===t.driverId);
+  const s = DB.settings;
+  const text = `【出車通知】
+公司：${s.companyName||"慶隆旅遊"}
+團名：${t.title}
+日期：${fmtDate(t.date)}（${t.duration}）
+集合地點：${t.meetPlace||"未提供"}
+集合時間：${t.meetTime||"未提供"}
+行駛景點：${t.spots.join("、")||"未提供"}
+司機：${d ? d.name : "未指派"}${d&&d.phone ? "（"+d.phone+"）":""}
+車牌：${t.vehiclePlate||"未填寫"}
+旅客人數：${t.tourists.length} 人
+如有異動請提前告知，辛苦了！`;
+  document.getElementById("driver-notice-area").innerHTML = `
+    <div class="notice-box">${esc(text)}</div>
+    <button class="btn btn-ghost" style="margin-top:12px;" onclick="copyText(\`${text.replace(/`/g,"'")}\`)">💬 複製通知（可貼 LINE 傳給司機）</button>`;
+}
+function copyText(text){
+  navigator.clipboard.writeText(text).then(()=>alert("已複製，貼到 LINE 傳給司機即可！"));
+}
+
+/* ---------------- 旅客點名 ---------------- */
+function screenRollcallPick(){
+  const list = [...DB.trips].reverse();
+  return topbar("選擇要點名的行程","home") + `<div class="content">
+    ${list.length===0 ? `<div class="empty">還沒有行程，請先到「AI 旅遊文宣」建立行程。</div>` : ""}
+    ${list.map(t=>`<div class="card" style="cursor:pointer;" onclick="go('rollcall','${t.id}')">
+      <div style="font-size:19px;font-weight:800;">🚌 ${esc(t.title)}</div>
+      <div style="font-size:15px;color:var(--ink-soft);margin-top:4px;">${esc(fmtDate(t.date))} ｜ ${t.tourists.length} 人</div>
+    </div>`).join("")}
+  </div>`;
+}
+const STATUS_CYCLE = ["未到","已到","取消"];
+const STATUS_META = {
+  "已到": {cls:"success", label:"🟢 已到"},
+  "未到": {cls:"warn", label:"🟡 未到"},
+  "取消": {cls:"danger", label:"🔴 取消"},
+};
+function screenRollcall(tripId){
+  const t = DB.trips.find(x=>x.id===tripId);
+  if(!t) return topbar("找不到行程","rollcall-pick")+`<div class="content"><div class="empty">此行程不存在</div></div>`;
+  const total = t.tourists.length;
+  const arrived = t.tourists.filter(p=>p.status==="已到").length;
+  const notArrived = t.tourists.filter(p=>p.status==="未到").length;
+  const cancelled = t.tourists.filter(p=>p.status==="取消").length;
+  return topbar(`旅客點名｜${t.title}`,"trips") + `
+    <div class="row" style="padding:16px 20px 4px;">
+      <div class="stat-chip"><div class="v">${total}</div><div class="l">總人數</div></div>
+      <div class="stat-chip"><div class="v" style="color:var(--success)">${arrived}</div><div class="l">已到</div></div>
+      <div class="stat-chip"><div class="v" style="color:var(--warn)">${notArrived}</div><div class="l">未到</div></div>
+      <div class="stat-chip"><div class="v" style="color:var(--danger)">${cancelled}</div><div class="l">取消</div></div>
+    </div>
+    <div class="content">
+      <div class="row" style="margin-bottom:16px;">
+        <input type="text" id="new-name" placeholder="輸入旅客姓名" onkeydown="if(event.key==='Enter')addTourist('${t.id}')">
+        <button class="btn btn-primary" style="flex:0 0 56px;" onclick="addTourist('${t.id}')">＋</button>
+      </div>
+      <button class="btn btn-ghost" style="margin-bottom:16px;" onclick="allArrived('${t.id}')">✔ 全部到齊</button>
+      ${t.tourists.length===0 ? `<div class="empty">還沒有旅客，請在上方輸入姓名新增。</div>` : ""}
+      ${t.tourists.map(p=>{
+        const m = STATUS_META[p.status];
+        return `<div class="card" style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:19px;font-weight:700;">${esc(p.name)}</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="status-pill" style="background:var(--${m.cls}-soft);color:var(--${m.cls});" onclick="cycleStatus('${t.id}','${p.id}')">${m.label}</button>
+            <button style="border:none;background:none;cursor:pointer;font-size:18px;color:var(--ink-soft);" onclick="removeTourist('${t.id}','${p.id}')">✕</button>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>`;
+}
+function addTourist(tripId){
+  const el = document.getElementById("new-name");
+  const name = el.value.trim(); if(!name) return;
+  const t = DB.trips.find(x=>x.id===tripId);
+  t.tourists.push({id:uid(), name, status:"未到"});
+  saveDB(); render();
+}
+function cycleStatus(tripId, personId){
+  const t = DB.trips.find(x=>x.id===tripId);
+  const p = t.tourists.find(x=>x.id===personId);
+  p.status = STATUS_CYCLE[(STATUS_CYCLE.indexOf(p.status)+1)%3];
+  saveDB(); render();
+}
+function removeTourist(tripId, personId){
+  const t = DB.trips.find(x=>x.id===tripId);
+  t.tourists = t.tourists.filter(p=>p.id!==personId);
+  saveDB(); render();
+}
+function allArrived(tripId){
+  const t = DB.trips.find(x=>x.id===tripId);
+  t.tourists.forEach(p=>p.status="已到");
+  saveDB(); render();
+}
+
+/* ---------------- 司機管理 ---------------- */
+let driverFormOpen = false;
+function screenDrivers(){
+  return topbar("司機管理","home") + `<div class="content">
+    ${!driverFormOpen ? `<button class="btn btn-primary" style="margin-bottom:16px;" onclick="toggleDriverForm()">＋ 新增司機</button>` : driverForm()}
+    ${DB.drivers.length===0 ? `<div class="empty">還沒有司機資料。</div>` : ""}
+    ${DB.drivers.map(d=>`
+      <div class="card" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-size:18px;font-weight:800;">🧑‍✈️ ${esc(d.name)}</div>
+          <div style="font-size:15px;color:var(--ink-soft);margin-top:4px;line-height:1.7;">
+            ${d.phone ? "📞 "+esc(d.phone)+"<br>":""}
+            ${d.licenseExpiry ? "🪪 駕照到期：" + esc(d.licenseExpiry) + "<br>" : ""}
+            ${esc(d.notes||"")}
+          </div>
+        </div>
+        <button style="border:none;background:none;cursor:pointer;font-size:20px;" onclick="deleteDriver('${d.id}')">🗑</button>
+      </div>`).join("")}
+  </div>`;
+}
+function toggleDriverForm(){ driverFormOpen = !driverFormOpen; render(); }
+function driverForm(){
+  return `<div class="card">
+    <div class="field"><label>姓名</label><input type="text" id="d-name" placeholder="王大明"></div>
+    <div class="field"><label>電話</label><input type="tel" id="d-phone" placeholder="0912-345-678"></div>
+    <div class="field"><label>駕照到期日（可留空）</label><input type="date" id="d-expiry"></div>
+    <div class="field"><label>備註（可留空）</label><input type="text" id="d-notes" placeholder="例：熟悉南投路線"></div>
+    <div class="row">
+      <button class="btn btn-ghost" onclick="toggleDriverForm()">取消</button>
+      <button class="btn btn-primary" onclick="saveDriver()">儲存</button>
+    </div>
+  </div>`;
+}
+function saveDriver(){
+  const name = document.getElementById("d-name").value.trim();
+  if(!name){ alert("請輸入司機姓名"); return; }
+  DB.drivers.push({
+    id: uid(), name,
+    phone: document.getElementById("d-phone").value.trim(),
+    licenseExpiry: document.getElementById("d-expiry").value,
+    notes: document.getElementById("d-notes").value.trim(),
+  });
+  saveDB(); driverFormOpen=false; render();
+}
+function deleteDriver(id){
+  if(!confirm("確定要刪除這位司機的資料嗎？")) return;
+  DB.drivers = DB.drivers.filter(d=>d.id!==id);
+  DB.trips.forEach(t=>{ if(t.driverId===id) t.driverId=""; });
+  saveDB(); render();
+}
+
+/* ---------------- 客戶資料 ---------------- */
+let customerFormOpen = false;
+function screenCustomers(){
+  return topbar("客戶資料","home") + `<div class="content">
+    ${!customerFormOpen ? `<button class="btn btn-primary" style="margin-bottom:16px;" onclick="toggleCustomerForm()">＋ 新增客戶</button>` : customerForm()}
+    ${DB.customers.length===0 ? `<div class="empty">還沒有客戶資料。</div>` : ""}
+    ${DB.customers.map(c=>`
+      <div class="card" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-size:18px;font-weight:800;">${esc(c.contact)}${c.company?"（"+esc(c.company)+"）":""}</div>
+          <div style="font-size:15px;color:var(--ink-soft);margin-top:4px;line-height:1.7;">
+            ${c.phone?"📞 "+esc(c.phone)+"<br>":""}
+            ${c.line?"💬 LINE："+esc(c.line)+"<br>":""}
+            ${esc(c.notes||"")}
+          </div>
+        </div>
+        <button style="border:none;background:none;cursor:pointer;font-size:20px;" onclick="deleteCustomer('${c.id}')">🗑</button>
+      </div>`).join("")}
+  </div>`;
+}
+function toggleCustomerForm(){ customerFormOpen = !customerFormOpen; render(); }
+function customerForm(){
+  return `<div class="card">
+    <div class="field"><label>公司（可留空）</label><input type="text" id="c-company"></div>
+    <div class="field"><label>聯絡人</label><input type="text" id="c-contact"></div>
+    <div class="field"><label>電話</label><input type="tel" id="c-phone"></div>
+    <div class="field"><label>LINE（可留空）</label><input type="text" id="c-line"></div>
+    <div class="field"><label>備註</label><input type="text" id="c-notes"></div>
+    <div class="row">
+      <button class="btn btn-ghost" onclick="toggleCustomerForm()">取消</button>
+      <button class="btn btn-primary" onclick="saveCustomer()">儲存</button>
+    </div>
+  </div>`;
+}
+function saveCustomer(){
+  const contact = document.getElementById("c-contact").value.trim();
+  if(!contact){ alert("請輸入聯絡人姓名"); return; }
+  DB.customers.push({
+    id: uid(), contact,
+    company: document.getElementById("c-company").value.trim(),
+    phone: document.getElementById("c-phone").value.trim(),
+    line: document.getElementById("c-line").value.trim(),
+    notes: document.getElementById("c-notes").value.trim(),
+  });
+  saveDB(); customerFormOpen=false; render();
+}
+function deleteCustomer(id){
+  if(!confirm("確定要刪除這筆客戶資料嗎？")) return;
+  DB.customers = DB.customers.filter(c=>c.id!==id);
+  saveDB(); render();
+}
+
+/* ---------------- 系統設定 ---------------- */
+function screenSettings(){
+  const s = DB.settings;
+  return topbar("系統設定","home") + `<div class="content">
+    <div class="field"><label>公司名稱</label><input type="text" id="s-name" value="${esc(s.companyName)}"></div>
+    <div class="field"><label>電話</label><input type="tel" id="s-phone" value="${esc(s.phone)}"></div>
+    <div class="field"><label>地址（可留空）</label><input type="text" id="s-address" value="${esc(s.address)}"></div>
+    <button class="btn btn-primary" onclick="saveSettings()">儲存設定</button>
+
+    <div style="margin-top:30px;padding:16px;background:var(--primary-soft);border-radius:16px;">
+      <div style="font-weight:800;font-size:17px;margin-bottom:8px;color:var(--primary-dark);">⭐ 未來可擴充功能</div>
+      <div style="font-size:15px;color:var(--ink-soft);line-height:2;">
+        📍 Google Maps 路線導航（尚未加入）<br>
+        🌦️ 天氣與路況提醒（尚未加入）<br>
+        📸 每團照片管理（尚未加入）<br>
+        📊 收支統計／報表匯出（尚未加入）<br>
+        🚌 車輛保養提醒（尚未加入）
+      </div>
+    </div>
+    <div style="margin-top:20px;padding:16px;background:#fff;border:2px solid var(--border);border-radius:16px;">
+      <div style="font-weight:800;font-size:16px;margin-bottom:8px;">💾 資料備份</div>
+      <div style="font-size:14px;color:var(--ink-soft);margin-bottom:12px;line-height:1.6;">資料只存在這個瀏覽器裡。建議定期匯出備份，換手機或清除瀏覽器資料前請先備份！</div>
+      <div class="row">
+        <button class="btn btn-ghost" onclick="exportData()">匯出備份</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">匯入備份</button>
+      </div>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this.files[0])">
+    </div>
+  </div>`;
+}
+function saveSettings(){
+  DB.settings.companyName = document.getElementById("s-name").value.trim();
+  DB.settings.phone = document.getElementById("s-phone").value.trim();
+  DB.settings.address = document.getElementById("s-address").value.trim();
+  saveDB(); alert("已儲存！");
+}
+function exportData(){
+  const blob = new Blob([JSON.stringify(DB,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `慶隆旅遊備份_${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); URL.revokeObjectURL(url);
+}
+function importData(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!confirm("匯入備份會覆蓋目前的所有資料，確定要繼續嗎？")) return;
+      DB = data; saveDB(); render();
+      alert("匯入完成！");
+    }catch(err){ alert("匯入失敗，檔案格式不正確"); }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------------- 事件綁定（首頁圓形按鈕：回首頁） ---------------- */
+function bindEvents(){
+  const app = document.getElementById("app");
+  const old = document.getElementById("home-fab-el");
+  if(old) old.remove();
+  if(screen !== "home"){
+    const btn = document.createElement("button");
+    btn.id = "home-fab-el";
+    btn.className = "home-fab";
+    btn.style.bottom = (screen==="wizard") ? "90px" : "20px";
+    btn.innerText = "🏠";
+    btn.onclick = ()=>go("home");
+    app.appendChild(btn);
+  }
+}
+
+render();
+</script>
+</body>
+</html>
