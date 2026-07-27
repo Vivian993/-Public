@@ -10,11 +10,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
-    --bg:#FAF7F0; --card:#FFFFFF; --primary:#5D7F63; --primary-dark:#41594A;
-    --primary-soft:#E4EDE3; --ink:#2A2A25; --ink-soft:#6E6B60; --accent:#C17A4E;
-    --gold:#C9A24B; --gold-soft:#F3EAD2;
-    --success:#4C7A52; --success-soft:#E4EFE1; --warn:#B98A34; --warn-soft:#F5EBD6;
-    --danger:#B15A4A; --danger-soft:#F5E3DE; --border:#E4DFD1;
+    --bg:#F2ECDA; --card:#FFFFFF; --primary:#7E8F6C; --primary-dark:#57624A;
+    --primary-soft:#E7E7D8; --ink:#3B342A; --ink-soft:#847A69; --accent:#A97C3D;
+    --gold:#9C7A3C; --gold-soft:#F0E4C8;
+    --success:#5E7C4A; --success-soft:#E7EEDD; --warn:#B98A34; --warn-soft:#F5EBD6;
+    --danger:#A85C46; --danger-soft:#F3E1D8; --border:#DED2B4;
   }
   *{box-sizing:border-box;}
   body{margin:0;font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--ink);}
@@ -67,7 +67,6 @@
   body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   #print-area{position:relative;}
   .print-content{position:relative;z-index:1;}
-  .corner-logo{position:absolute;bottom:6px;right:6px;width:86px;z-index:2;filter:drop-shadow(0 2px 5px rgba(0,0,0,.25));pointer-events:none;}
   .doc-stamp{display:flex;justify-content:center;margin:14px 0 4px;}
   .doc-stamp img{width:110px;}
   .card-logo{width:64px;display:block;margin:0 auto 10px;}
@@ -148,6 +147,7 @@ function playClick(){
   if(!DB.settings.clickSound) return;
   try{
     if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state === "suspended") audioCtx.resume();
     const now = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -157,6 +157,23 @@ function playClick(){
     gain.gain.exponentialRampToValueAtTime(0.001, now+0.09);
     osc.connect(gain); gain.connect(audioCtx.destination);
     osc.start(now); osc.stop(now+0.1);
+  }catch(e){}
+}
+/* 計算機專用按鍵聲（音調略不同，模擬按鍵回饋） */
+function calcBeep(){
+  if(!DB.settings.clickSound) return;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state === "suspended") audioCtx.resume();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(1100, now);
+    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now+0.06);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(now); osc.stop(now+0.07);
   }catch(e){}
 }
 document.addEventListener("click", function(e){
@@ -561,7 +578,6 @@ function screenWorkDetail(workId){
           <div style="font-family:'Noto Serif TC',serif;font-size:26px;font-weight:900;line-height:1.4;">${esc(j.title)}</div>
           <div style="font-size:16px;margin-top:8px;opacity:.95;">${esc(j.subtitle||"")}</div>
           ${trip && trip.pricePerPerson ? `<div style="margin-top:12px;display:inline-block;background:rgba(255,255,255,.15);padding:6px 16px;border-radius:999px;font-size:15px;">💰 每人 ${esc(trip.pricePerPerson)}</div>` : ""}
-          <div class="corner-logo"><img src="${LOGO_IMG}" style="width:100%;display:block;"></div>
         </div>
         <div class="card" style="margin-top:16px;"><p style="font-size:16px;line-height:1.8;margin:0;">${esc(j.intro)}</p></div>
         ${daysHtml}
@@ -574,6 +590,7 @@ function screenWorkDetail(workId){
       <div class="no-print" style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
         <button class="btn btn-primary" id="pdf-btn" onclick="exportPDF('${w.id}')">⬇️ 下載 PDF 檔</button>
         <button class="btn btn-ghost" onclick="copyWorkText('${w.id}')">💬 複製文字（可貼 LINE）</button>
+        <a class="btn btn-gold" style="text-decoration:none;" href="https://gemini.google.com/gem/1lxjigANOE6HgA9uDhxt2raXPj5v_JoG4?usp=sharing" target="_blank" rel="noopener" onclick="copyWorkText('${w.id}')">🎨 用 AI 生成行程圖片（Gemini）</a>
         <button class="btn btn-ghost" onclick="window.print()">🖨️ 直接列印</button>
         <button class="btn btn-danger" onclick="deleteWork('${w.id}')">🗑 刪除這份作品</button>
       </div>
@@ -1151,17 +1168,20 @@ function toggleMiniCalc(){
 }
 function miniCalcRefresh(){ const d=document.getElementById("mini-calc-display"); if(d) d.innerText = miniCalcState.cur; }
 function miniCalcDigit(d){
+  calcBeep();
   if(miniCalcState.reset){ miniCalcState.cur="0"; miniCalcState.reset=false; }
   if(d==="." && miniCalcState.cur.includes(".")) return;
   miniCalcState.cur = miniCalcState.cur==="0" && d!=="." ? d : miniCalcState.cur+d;
   miniCalcRefresh();
 }
-function miniCalcClear(){ miniCalcState = { cur:"0", prev:null, op:null, reset:false }; miniCalcRefresh(); }
+function miniCalcClear(){ calcBeep(); miniCalcState = { cur:"0", prev:null, op:null, reset:false }; miniCalcRefresh(); }
 function miniCalcOp(op){
+  calcBeep();
   if(miniCalcState.prev!==null && !miniCalcState.reset) miniCalcEq();
   miniCalcState.prev = parseFloat(miniCalcState.cur); miniCalcState.op = op; miniCalcState.reset = true;
 }
 function miniCalcEq(){
+  calcBeep();
   if(miniCalcState.op===null || miniCalcState.prev===null) return;
   const a=miniCalcState.prev, b=parseFloat(miniCalcState.cur); let r=0;
   switch(miniCalcState.op){
@@ -1283,20 +1303,23 @@ function openCalc(){
 function closeCalc(){ const o=document.getElementById("calc-overlay"); if(o) o.remove(); }
 function calcRefresh(){ document.getElementById("calc-display").innerText = calcState.cur; }
 function calcDigit(d){
+  calcBeep();
   if(calcState.reset){ calcState.cur = "0"; calcState.reset=false; }
   if(d==="." && calcState.cur.includes(".")) return;
   calcState.cur = calcState.cur==="0" && d!=="." ? d : calcState.cur + d;
   calcRefresh();
 }
-function calcClear(){ calcState = { cur:"0", prev:null, op:null, reset:false }; calcRefresh(); }
-function calcBack(){ calcState.cur = calcState.cur.length>1 ? calcState.cur.slice(0,-1) : "0"; calcRefresh(); }
+function calcClear(){ calcBeep(); calcState = { cur:"0", prev:null, op:null, reset:false }; calcRefresh(); }
+function calcBack(){ calcBeep(); calcState.cur = calcState.cur.length>1 ? calcState.cur.slice(0,-1) : "0"; calcRefresh(); }
 function calcOp(op){
+  calcBeep();
   if(calcState.prev!==null && !calcState.reset) calcEquals();
   calcState.prev = parseFloat(calcState.cur);
   calcState.op = op;
   calcState.reset = true;
 }
 function calcEquals(){
+  calcBeep();
   if(calcState.op===null || calcState.prev===null) return;
   const a = calcState.prev, b = parseFloat(calcState.cur);
   let r = 0;
