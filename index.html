@@ -592,8 +592,8 @@ function screenWorkDetail(workId){
       </div>
       <div class="no-print" style="margin-top:20px;display:flex;flex-direction:column;gap:12px;">
         <button class="btn btn-primary" id="pdf-btn" onclick="exportPDF('${w.id}')">⬇️ 下載 PDF 檔</button>
-        <button class="btn btn-ghost" onclick="copyWorkText('${w.id}')">💬 複製文字（可貼 LINE）</button>
-        <a class="btn btn-gold" style="text-decoration:none;" href="https://gemini.google.com/gem/1lxjigANOE6HgA9uDhxt2raXPj5v_JoG4?usp=sharing" target="_blank" rel="noopener" onclick="copyWorkText('${w.id}')">🎨 用 AI 生成行程圖片（Gemini）</a>
+        <button class="btn btn-ghost" onclick="copyWorkText('${w.id}')">💬 複製文字（可貼 LINE 或 Gemini）</button>
+        <a class="btn btn-gold" style="text-decoration:none;" href="https://gemini.google.com/gem/1lxjigANOE6HgA9uDhxt2raXPj5v_JoG4?usp=sharing" target="_blank" rel="noopener">🎨 開啟 Gemini 生成行程圖片</a>
         <button class="btn btn-ghost" onclick="window.print()">🖨️ 直接列印</button>
         <button class="btn btn-danger" onclick="deleteWork('${w.id}')">🗑 刪除這份作品</button>
       </div>
