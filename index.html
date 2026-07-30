@@ -211,7 +211,7 @@ function go(s, p=null){ screen=s; param=p; render(); window.scrollTo(0,0); }
 /* ============================================================
    離線「有感文案」產生器
    ============================================================ */
-const OPENERS = ["跟著我們的腳步，","一起放慢腳步，","邀請您，","讓我們暫時放下忙碌，","收拾好行囊，"];
+const OPENERS = ["跟著我們的腳步，","一起放慢腳步，","邀請您，","讓我們暫時放下忙碌，","收拾好行囊，","趁著好天氣，","放下手邊的忙碌，","準備好了嗎？","規劃了一趟特別的旅程，","趁著假期，"];
 const MOODS = {
   "適合長輩":"步調安排得從容不迫，讓長輩也能自在同遊、盡興而歸",
   "賞花":"沿途花香相伴，正是最適合賞花踏青的季節",
@@ -220,39 +220,103 @@ const MOODS = {
   "輕鬆好走":"路線平緩好走，不必擔心體力負擔，輕輕鬆鬆遊玩",
   "宗教祈福":"安排祈福參拜行程，願一路平安、心願成真"
 };
-const SPOT_TEMPLATES = [
+/* 景點描述採「氛圍句＋建議句」雙抽籤組合，兩邊各十幾句，交叉搭配可產生上百種不重複組合 */
+const SPOT_OPENERS = [
   "抵達後不妨放慢腳步，細細感受這裡獨有的氛圍",
+  "這裡風景怡人，很適合停下腳步、走走逛逛",
+  "沿途景致優美，是難得的放鬆時刻",
+  "當地保留著獨特的人文風情，值得細細品味",
+  "腹地寬闊、環境清幽，走起來格外舒服自在",
+  "空氣中瀰漫著悠閒的氣息，很適合放慢步調體會",
+  "在地特色鮮明，是認識這片土地最好的入門景點",
+  "視野遼闊，天氣好的時候格外迷人",
+  "保留了不少歷史痕跡，走一趟彷彿走過一段時光",
+  "小巧精緻卻別有韻味，是意外討喜的中途停留點",
+  "周邊步道平緩好走，很適合大家一起散散步、聊聊天",
+  "環境清幽雅致，是沿途中讓人眼睛一亮的景點",
+  "這一站步調輕鬆，很適合放空、透透氣",
+  "景色隨著季節變化，每次造訪都有不同風情",
+];
+const SPOT_SUGGESTIONS = [
   "在地小有名氣，許多旅客來訪後都讚不絕口，記得多拍幾張照片留念",
-  "這裡風景怡人，很適合停下腳步、走走逛逛，享受悠閒時光",
+  "不妨趁機逛逛周邊小店，說不定會有意想不到的驚喜收穫",
   "是此行的亮點之一，值得多留一些時間慢慢遊覽",
-  "不妨趁機逛逛周邊小店，說不定會有意想不到的驚喜收穫"
+  "這一站很適合拍照留念，記錄下旅途中的美好瞬間",
+  "是許多旅客口耳相傳的口袋名單，親自造訪就知道為什麼",
+  "不妨找個角度，留下一張到此一遊的紀念照",
+  "如果時間允許，很值得多待一會兒，好好感受這裡的氛圍",
+  "周邊也有不少值得一逛的小攤位，可以順道走走",
+  "很適合和同行的親友聊聊天、拍拍照，留下美好回憶",
+  "建議放慢腳步慢慢走，才不會錯過細節之處的美好",
+  "是這趟行程中最受歡迎的拍照打卡點之一",
+  "不趕時間的話，很推薦多繞一圈，感受不同角度的風景",
+  "許多長輩來到這裡都特別喜歡，適合坐下來休息片刻",
+  "這裡也很適合買點在地特產，帶回家與親友分享",
 ];
 const HOTEL_LINES = [
   "結束充實的一天，就讓我們在溫暖的住宿中好好休息，養精蓄銳，迎接明天的行程",
   "今晚在此下榻，洗去一身疲憊，好好睡上一覺，為明天儲備滿滿的體力",
-  "白天玩得盡興，晚上也該好好放鬆，在舒適的房間裡沉澱這一天的美好回憶"
+  "白天玩得盡興，晚上也該好好放鬆，在舒適的房間裡沉澱這一天的美好回憶",
+  "今晚就在這裡歇腳，卸下一身疲憊，讓身心都好好充電",
+  "忙碌充實的一天即將畫下句點，舒服洗個澡、早點休息，養足精神迎接明天",
+  "今晚的住宿環境舒適，很適合好好放鬆，為明天的行程做好準備",
+  "白天走了不少路，晚上就在這裡安心歇腳，好好補充體力",
+  "旅途中的休息時光同樣重要，今晚就在這裡好好放鬆身心",
 ];
 const RETURN_LINES = [
   "帶著滿滿的回憶與笑容，賦歸的路上也是這趟旅程最溫暖的句點",
   "旅程雖然告一段落，但這幾天留下的美好回憶會一直陪伴著大家",
-  "感謝大家的參與，期待下一次再一起出發，共度美好時光"
+  "感謝大家的參與，期待下一次再一起出發，共度美好時光",
+  "滿載而歸的不只是伴手禮，還有這幾天共同創造的珍貴回憶",
+  "這幾天的點點滴滴，都會是往後回味無窮的美好時光",
+  "旅程畫下句點，期待下次再一起踏上新的旅程",
 ];
-const BREAKFAST_LINES = ["享用豐盛早餐，補充一天所需的元氣","悠閒享用早餐，為新的一天揭開序幕"];
-const LUNCH_LINES = ["安排在地合菜，讓大家吃得飽飽的再繼續行程","品嚐道地風味料理，補充體力再上路"];
-const DINNER_LINES = ["享用豐盛晚餐，為一天的行程畫下美味的句點","一起享用晚餐，分享今天沿途的所見所聞"];
+const BREAKFAST_LINES = ["享用豐盛早餐，補充一天所需的元氣","悠閒享用早餐，為新的一天揭開序幕","吃飽飽再出發，才有體力應付一整天的行程","享用完早餐後，精神飽滿地展開今天的行程"];
+const LUNCH_LINES = ["安排在地合菜，讓大家吃得飽飽的再繼續行程","品嚐道地風味料理，補充體力再上路","安排豐盛的一餐，讓大家好好休息、補充體力","中午用餐時間，也是與同行親友交流的好時光"];
+const DINNER_LINES = ["享用豐盛晚餐，為一天的行程畫下美味的句點","一起享用晚餐，分享今天沿途的所見所聞","豐盛的晚餐是對辛苦一天最好的犒賞","結束一天行程，來一頓豐盛晚餐犒賞自己"];
 
+/* 不重複抽籤袋：同一次產生行程時，同類型的句子不會抽到重複的，抽完一輪才會重新洗牌 */
+function makeBag(arr){
+  let pool = [];
+  return function(){
+    if(pool.length===0) pool = arr.map((_,i)=>i).sort(()=>Math.random()-0.5);
+    const idx = pool.pop();
+    return arr[idx];
+  };
+}
+let bags = null;
+function resetBags(){
+  bags = {
+    spotOpen: makeBag(SPOT_OPENERS), spotSuggest: makeBag(SPOT_SUGGESTIONS),
+    hotel: makeBag(HOTEL_LINES), ret: makeBag(RETURN_LINES),
+    breakfast: makeBag(BREAKFAST_LINES), lunch: makeBag(LUNCH_LINES), dinner: makeBag(DINNER_LINES),
+  };
+}
 function pickOne(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function autoDesc(kind, place, features){
-  const mood = features.map(f=>MOODS[f]).filter(Boolean)[0];
+function autoDesc(kind){
+  if(!bags) resetBags();
   switch(kind){
-    case "spot": return `${pickOne(SPOT_TEMPLATES)}${mood?"，"+mood:""}。`;
-    case "hotel": return pickOne(HOTEL_LINES)+"。";
-    case "return": return pickOne(RETURN_LINES)+"。";
-    case "breakfast": return pickOne(BREAKFAST_LINES)+"。";
-    case "lunch": return pickOne(LUNCH_LINES)+"。";
-    case "dinner": return pickOne(DINNER_LINES)+"。";
+    case "spot": return `${bags.spotOpen()}，${bags.spotSuggest()}。`;
+    case "hotel": return bags.hotel()+"。";
+    case "return": return bags.ret()+"。";
+    case "breakfast": return bags.breakfast()+"。";
+    case "lunch": return bags.lunch()+"。";
+    case "dinner": return bags.dinner()+"。";
     default: return "";
   }
+}
+/* 為整個行程「一次性」把所有空白描述填好並永久存進資料，避免每次打開頁面又隨機跳出不同文字 */
+function finalizeTripDescriptions(trip){
+  resetBags();
+  trip.days.forEach(day=>{
+    day.blocks.forEach(b=>{
+      if(["spot","hotel","return","breakfast","lunch","dinner"].includes(b.kind) && !b.desc){
+        if((b.kind==="lunch"||b.kind==="dinner"||b.kind==="breakfast") && !b.place) return; // 完全沒填就不硬塞文字
+        if((b.kind==="spot"||b.kind==="hotel") && !b.place) return;
+        b.desc = autoDesc(b.kind);
+      }
+    });
+  });
 }
 
 const KIND_META = {
@@ -266,7 +330,7 @@ const KIND_META = {
   note:      {icon:"📝", label:"自訂內容"},
 };
 
-/* 組成純文字版本（可複製貼到 LINE） */
+/* 組成純文字版本（可複製貼到 LINE）－ 欄位空白時優雅省略，絕不顯示「未填寫」等內部提示字 */
 function buildPlainText(trip, content){
   let out = `${content.title}\n`;
   if(content.subtitle) out += `${content.subtitle}\n`;
@@ -276,22 +340,31 @@ function buildPlainText(trip, content){
     const dateStr = trip.startDate ? fmtDateNice(addDays(trip.startDate, i)) : "";
     out += `\n⸻\n【第${numToChar(i+1)}天】${dateStr?"（"+dateStr+"）":""}\n`;
     day.blocks.forEach(b=>{
-      const m = KIND_META[b.kind];
       if(b.kind==="meet"){
-        out += `集合地點：${b.place||"未填寫"}\n時間：${b.time||"未填寫"}\n`;
+        if(!b.place && !b.time) return;
+        if(b.place) out += `集合地點：${b.place}\n`;
+        if(b.time) out += `時間：${b.time}\n`;
       } else if(b.kind==="breakfast"){
-        out += `早餐時間：${b.time||"未填寫"}${b.place?"（"+b.place+"）":""}\n`;
+        if(!b.place && !b.time) return;
+        out += `早餐時間：${b.time||"（依飯店安排）"}${b.place?"（"+b.place+"）":""}\n`;
       } else if(b.kind==="lunch"){
-        out += `中餐：${b.place||"未填寫"}${b.desc?"　"+b.desc:""}\n`;
+        if(!b.place && !b.desc) return;
+        out += `中餐：${b.place||b.desc}${b.place&&b.desc?"　"+b.desc:""}\n`;
       } else if(b.kind==="dinner"){
-        out += `晚餐：${b.place||"未填寫"}${b.desc?"　"+b.desc:""}\n`;
+        if(!b.place && !b.desc) return;
+        out += `晚餐：${b.place||b.desc}${b.place&&b.desc?"　"+b.desc:""}\n`;
       } else if(b.kind==="hotel"){
-        out += `入住：${b.place||"未填寫"}\n${b.desc||autoDesc("hotel",b.place,trip.features)}\n進入夢鄉💤\n`;
+        if(!b.place) return;
+        out += `入住：${b.place}\n${b.desc||""}\n進入夢鄉💤\n`;
       } else if(b.kind==="return"){
-        out += `賦歸時間：${b.time||"未填寫"}\n${b.desc||autoDesc("return",b.place,trip.features)}\n`;
+        if(!b.time && !b.desc) return;
+        if(b.time) out += `賦歸時間：${b.time}\n`;
+        if(b.desc) out += `${b.desc}\n`;
       } else if(b.kind==="spot"){
-        out += `▸ ${b.place||"景點"}${b.time?"（"+b.time+"）":""}\n${b.desc||autoDesc("spot",b.place,trip.features)}\n`;
+        if(!b.place) return;
+        out += `▸ ${b.place}${b.time?"（"+b.time+"）":""}\n${b.desc||""}\n`;
       } else {
+        if(!b.place && !b.desc) return;
         out += `${b.place?b.place+"：":""}${b.desc||""}\n`;
       }
     });
@@ -509,12 +582,13 @@ async function wizardGenerate(){
     subtitle: t.features.map(f=>MOODS[f]).filter(Boolean)[0] || "輕鬆出遊，好山好水好心情",
     intro: `${pickOne(OPENERS)}展開一趟${t.days.length}天的旅程。${t.features.map(f=>MOODS[f]).filter(Boolean).join("，")||"行程安排輕鬆順暢，適合各年齡層一同參加"}。`,
   };
-  const plain = buildPlainText(t, content);
 
   const tripId = uid();
   const trip = { id: tripId, title: t.title, startDate: t.startDate, features:[...t.features],
     pricePerPerson: t.pricePerPerson, meetPlace: t.meetPlace, meetTime: t.meetTime,
     days: JSON.parse(JSON.stringify(t.days)), driverId:"", vehiclePlate:"", tourists:[] };
+  finalizeTripDescriptions(trip); // 把所有自動文案「一次性」寫死進資料，之後每次查看都一樣，不會隨機變來變去
+  const plain = buildPlainText(trip, content);
   const work = { id: uid(), tripId, createdAt: new Date().toISOString(), content, plainText: plain, weather: null };
   DB.trips.push(trip); DB.works.push(work); saveDB();
   wizardTrip = null;
@@ -548,14 +622,15 @@ function screenWorkDetail(workId){
       daysHtml += `<div class="card">`;
       day.blocks.forEach(b=>{
         const m = KIND_META[b.kind];
-        let valLine = "", descLine = "";
-        if(b.kind==="meet"){ valLine = `${b.place||"未填寫"}　${b.time||""}`; }
-        else if(b.kind==="breakfast"){ valLine = `${b.time||"未填寫"}${b.place?"（"+b.place+"）":""}`; }
-        else if(b.kind==="lunch" || b.kind==="dinner"){ valLine = b.place||"未填寫"; descLine = b.desc||autoDesc(b.kind,b.place,trip.features); }
-        else if(b.kind==="hotel"){ valLine = b.place||"未填寫"; descLine = (b.desc||autoDesc("hotel",b.place,trip.features))+" 進入夢鄉💤"; }
-        else if(b.kind==="return"){ valLine = b.time||"未填寫"; descLine = b.desc||autoDesc("return",b.place,trip.features); }
-        else if(b.kind==="spot"){ valLine = `${b.place||"景點"}${b.time?"（"+b.time+"）":""}`; descLine = b.desc||autoDesc("spot",b.place,trip.features); }
-        else { valLine = b.place||""; descLine = b.desc||""; }
+        let valLine = "", descLine = "", skip = false;
+        if(b.kind==="meet"){ if(!b.place && !b.time){skip=true;} valLine = [b.place, b.time].filter(Boolean).join("　"); }
+        else if(b.kind==="breakfast"){ if(!b.place && !b.time){skip=true;} valLine = `${b.time||"依飯店安排"}${b.place?"（"+b.place+"）":""}`; }
+        else if(b.kind==="lunch" || b.kind==="dinner"){ if(!b.place && !b.desc){skip=true;} valLine = b.place||b.desc||""; descLine = b.place?(b.desc||""):""; }
+        else if(b.kind==="hotel"){ if(!b.place){skip=true;} valLine = b.place||""; descLine = (b.desc||"")+" 進入夢鄉💤"; }
+        else if(b.kind==="return"){ if(!b.time && !b.desc){skip=true;} valLine = b.time||""; descLine = b.desc||""; }
+        else if(b.kind==="spot"){ if(!b.place){skip=true;} valLine = `${b.place||""}${b.time?"（"+b.time+"）":""}`; descLine = b.desc||""; }
+        else { if(!b.place && !b.desc){skip=true;} valLine = b.place||""; descLine = b.desc||""; }
+        if(skip) return;
         const nav = (b.place && ["meet","spot","hotel","lunch","dinner"].includes(b.kind)) ? `<a class="nav-link" href="${mapsLink(b.place)}" target="_blank">🧭 Google導航</a>` : "";
         daysHtml += `<div class="block-line">
           <div class="block-ic">${m.icon}</div>
@@ -761,15 +836,16 @@ function buildManifestText(t){
     out += `【第${numToChar(i+1)}天】${dateStr}\n`;
     day.blocks.forEach(b=>{
       const m = KIND_META[b.kind];
-      let line = "";
-      if(b.kind==="meet") line = `集合：${b.place||"未填寫"} ${b.time||""}`;
-      else if(b.kind==="breakfast") line = `早餐：${b.time||""} ${b.place||""}`;
-      else if(b.kind==="lunch") line = `午餐：${b.place||"未填寫"}`;
-      else if(b.kind==="dinner") line = `晚餐：${b.place||"未填寫"}`;
-      else if(b.kind==="hotel") line = `住宿：${b.place||"未填寫"}`;
-      else if(b.kind==="return") line = `賦歸：${b.time||"未填寫"}`;
-      else if(b.kind==="spot") line = `景點：${b.place||"未填寫"} ${b.time||""}`;
-      else line = `${b.place||""} ${b.desc||""}`;
+      let line = "", skip = false;
+      if(b.kind==="meet"){ if(!b.place && !b.time) skip=true; line = `集合：${[b.place,b.time].filter(Boolean).join(" ")}`; }
+      else if(b.kind==="breakfast"){ if(!b.place && !b.time) skip=true; line = `早餐：${[b.time,b.place].filter(Boolean).join(" ")}`; }
+      else if(b.kind==="lunch"){ if(!b.place) skip=true; line = `午餐：${b.place}`; }
+      else if(b.kind==="dinner"){ if(!b.place) skip=true; line = `晚餐：${b.place}`; }
+      else if(b.kind==="hotel"){ if(!b.place) skip=true; line = `住宿：${b.place}`; }
+      else if(b.kind==="return"){ if(!b.time) skip=true; line = `賦歸：${b.time}`; }
+      else if(b.kind==="spot"){ if(!b.place) skip=true; line = `景點：${[b.place,b.time].filter(Boolean).join(" ")}`; }
+      else { if(!b.place && !b.desc) skip=true; line = `${b.place||""} ${b.desc||""}`; }
+      if(skip) return;
       out += `☐ ${m.icon} ${line}\n`;
     });
     out += `\n`;
